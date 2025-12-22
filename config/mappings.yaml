@@ -1,0 +1,34 @@
+# SCIM Gateway Role Mapping Configuration
+# 
+# This file defines how Alice roles are mapped to LaunchDarkly custom roles.
+# Alice sends roles in the standard SCIM roles[] array attribute.
+# This gateway transforms them to LD's customRole attribute.
+
+# Role Mappings
+# Maps Alice role values (from roles[].value) to LaunchDarkly custom role keys
+role_mappings:
+  # Example: Map Alice "ld-admin" role to LD custom role
+  - aliceRole: "ld-admin"
+    ldCustomRoles:
+      - "ld-admin"
+
+  # Example: Map Alice "ld-developer" role to LD custom role
+  - aliceRole: "ld-developer"
+    ldCustomRoles:
+      - "developer"
+
+  # Example: Map Alice "ld-viewer" role to LD custom role  
+  - aliceRole: "ld-viewer"
+    ldCustomRoles:
+      - "viewer"
+
+  # Example: A single Alice role can map to multiple LD custom roles
+  # - aliceRole: "ld-project-lead"
+  #   ldCustomRoles:
+  #     - "project-admin"
+  #     - "feature-flag-manager"
+
+# Default LaunchDarkly base role if no custom role mapping matches
+# Options: reader, writer, admin, no_access
+default_role: "reader"
+
