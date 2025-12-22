@@ -1,6 +1,11 @@
 # SCIM Gateway
 
-A SCIM 2.0 middleware service that bridges the Alice Identity Provider (IdP) and LaunchDarkly. This gateway translates standard SCIM User resources from Alice into LaunchDarkly's extended SCIM schema, enabling automated user provisioning with role mapping.
+[![LaunchDarkly Labs](https://img.shields.io/badge/LaunchDarkly-Labs-00c9b7?logo=launchdarkly)](https://github.com/launchdarkly-labs)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+
+> **LaunchDarkly Labs**: This repository is maintained by LaunchDarkly Labs. While we try to keep it up to date, it is not officially supported by LaunchDarkly. For officially supported SDKs and tools, visit https://launchdarkly.com
+
+A SCIM 2.0 middleware service that bridges identity providers with LaunchDarkly. This gateway translates standard SCIM User resources into LaunchDarkly's extended SCIM schema, enabling automated user provisioning with role mapping.
 
 ## Overview
 
@@ -255,7 +260,11 @@ docker run -d \
 - Check that SCIM is enabled in your LaunchDarkly account
 - Ensure the custom roles referenced in mappings exist in LaunchDarkly
 
+## Contributing
+
+We encourage pull requests and other contributions from the community. Check out our [contributing guidelines](CONTRIBUTING.md) for instructions on how to contribute to this project.
+
 ## License
 
-MIT
+This project is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for the full license text.
 

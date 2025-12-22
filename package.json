@@ -1,7 +1,7 @@
 {
-  "name": "scim-gateway",
+  "name": "@launchdarkly-labs/scim-gateway",
   "version": "1.0.0",
-  "description": "SCIM Gateway middleware between Alice IdP and LaunchDarkly",
+  "description": "SCIM 2.0 Gateway middleware that bridges identity providers with LaunchDarkly, enabling automated user provisioning with role mapping",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
@@ -12,11 +12,23 @@
   },
   "keywords": [
     "scim",
+    "scim2",
     "launchdarkly",
     "identity",
-    "provisioning"
+    "provisioning",
+    "idp",
+    "user-management",
+    "sso"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/launchdarkly-labs/scim-gateway.git"
+  },
+  "bugs": {
+    "url": "https://github.com/launchdarkly-labs/scim-gateway/issues"
+  },
+  "homepage": "https://github.com/launchdarkly-labs/scim-gateway#readme",
   "dependencies": {
     "better-sqlite3": "^11.6.0",
     "express": "^5.1.0",
