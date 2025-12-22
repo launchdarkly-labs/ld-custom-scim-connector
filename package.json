@@ -31,6 +31,7 @@
   "homepage": "https://github.com/launchdarkly-labs/scim-gateway#readme",
   "dependencies": {
     "better-sqlite3": "^11.6.0",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "js-yaml": "^4.1.0",
     "pino": "^9.5.0",
@@ -51,4 +52,3 @@
     "node": ">=20.0.0"
   }
 }
-

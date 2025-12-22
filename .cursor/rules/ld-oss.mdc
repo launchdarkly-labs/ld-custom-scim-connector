@@ -1,0 +1,274 @@
+---
+alwaysApply: true
+---
+
+# LaunchDarkly Labs Open Source Readiness
+
+You are helping prepare this LaunchDarkly Labs repository for open source release. Follow these steps:
+
+## Prerequisites Check
+First verify git and GitHub CLI are available:
+- Run: `git --version && gh --version`
+
+If either command fails, instruct the user:
+- Install git: https://git-scm.com/downloads
+- Install GitHub CLI: https://cli.github.com/
+- Authenticate: `gh auth login`
+
+## 1. Apache 2.0 License
+**CRITICAL: Only license code that LaunchDarkly has the rights to license.**
+
+**Check for existing licenses in one command:**
+```bash
+echo "=== Root License Files ===" && \
+find . -maxdepth 1 -iname "license*" -o -iname "licence*" && \
+echo -e "\n=== Package License Fields ===" && \
+(test -f package.json && echo "Node.js:" && cat package.json | jq -r '.license // "none"' || true) && \
+(test -f pyproject.toml && echo "Python (pyproject.toml):" && rg "^license" pyproject.toml || true) && \
+(test -f setup.py && echo "Python (setup.py):" && rg "license" setup.py || true) && \
+(test -f Cargo.toml && echo "Rust:" && rg "^license" Cargo.toml || true) && \
+(find . -maxdepth 1 -name "*.gemspec" -exec echo "Ruby:" \; -exec rg "license" {} \; || true)
+```
+
+**⚠️  STOP AND NOTIFY USER IF:**
+- Existing license files show non-Apache 2.0 license
+- Package metadata shows different license
+- Multiple conflicting licenses found
+
+**If checks are clear or no license exists**, add Apache 2.0 license:
+
+1. Create LICENSE file (or LICENSE.md if repo uses .md convention) with this exact text (use current year):
+   ```
+   Copyright [CURRENT_YEAR] Catamorphic Inc dba LaunchDarkly
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   ```
+   Replace [CURRENT_YEAR] with the actual current year.
+
+2. Update package metadata if needed:
+   - Node.js: Add `"license": "Apache-2.0"` to package.json
+   - Python: Add `license = "Apache-2.0"` to pyproject.toml [project] section or setup.py
+   - Rust: Add `license = "Apache-2.0"` to Cargo.toml [package] section
+   - Ruby: Add `spec.license = "Apache-2.0"` to gemspec
+
+## 2. Changelog
+Check for changelog and get recent commits:
+```bash
+echo "=== Existing Changelog ===" && \
+find . -maxdepth 1 -iname "changelog*" -o -iname "history*" -o -iname "releases*" && \
+echo -e "\n=== Recent Commits ===" && \
+git log --oneline --no-merges -20
+```
+
+If missing, create CHANGELOG.md:
+- Use Keep a Changelog format (https://keepachangelog.com/)
+- Organize by version with sections: Added, Changed, Deprecated, Removed, Fixed, Security
+- Start with current version and work backwards
+
+If changelog exists but outdated, get commits since last update:
+```bash
+git log --oneline --no-merges --since="$(git log -1 --format=%ai -- CHANGELOG.md)"
+```
+
+## 3. README
+Check for README and analyze structure:
+```bash
+echo "=== README Files ===" && \
+find . -maxdepth 1 -iname "readme*" && \
+echo -e "\n=== README Sections (if exists) ===" && \
+(test -f README.md && rg "^#{1,3} " README.md || true)
+```
+
+README must include:
+- **Project description**: What it does, why it exists
+- **Installation**: Clear installation instructions
+- **Quick start**: Minimal working example
+- **Usage**: Key features and examples
+- **Requirements**: Dependencies, supported versions
+- **Documentation**: Link to full docs if available
+- **License**: "Apache 2.0 - see LICENSE file"
+- **LaunchDarkly Labs disclaimer**: 
+  ```
+  This repository is maintained by LaunchDarkly Labs. While we try to keep it 
+  up to date, it is not officially supported by LaunchDarkly. For officially 
+  supported SDKs and tools, visit https://launchdarkly.com
+  ```
+
+Check if README has badges (add if missing):
+- License badge: `[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)`
+- Build status (if CI exists)
+- Version/release badge
+
+## 4. Repository Metadata
+
+### Naming Conventions
+Follow LaunchDarkly naming patterns (lowercase with hyphens):
+
+**SDKs:**
+- Client SDKs: `[platform]-client-sdk` (e.g., `angular-client-sdk`)
+- Server SDKs: `[language]-server-sdk` 
+- Framework-specific: `[framework]-client-sdk` (e.g., `react-client-sdk`)
+
+**SDK Components/Integrations:**
+- Data stores: `[language]-server-sdk-[store]-[client]`
+- Libraries: `[language]-[function]`
+- Shared code: `[language]-sdk-common`
+
+**Tools & Integrations:**
+- CLI tools: `[tool-name]` or `ld-[name]`
+- IDE extensions: `ld-[editor]`
+- Provider/Plugin: `[platform]-[type]-launchdarkly`
+
+**GitHub Actions:**
+- Action repos: `[action-name]` (e.g., `find-code-references-in-pull-request`)
+- Add topics: `github-action`, `github-actions`, `actions` (all three)
+
+**Examples:**
+- Pattern: `hello-[language/framework]` or `hello-[language]-[feature]`
+
+### Check Current Settings
+```bash
+echo "=== Current Repo Settings ===" && \
+gh repo view --json name,description,topics,hasIssuesEnabled,licenseInfo
+```
+
+### Determine Appropriate Topics
+
+**Required base topics:**
+- `launchdarkly` - Always include
+- `launchdarkly-labs` - Always include for Labs projects
+- `feature-flags` + `feature-toggles` - Always pair together for SDK-related repos
+
+**Category topics (choose appropriate):**
+- `launchdarkly-sdk` - Official SDKs
+- `launchdarkly-sdk-component` - SDK add-ons, integrations, shared libraries
+- `launchdarkly-integration` - External tool integrations (IDE, CI/CD, build tools)
+- `launchdarkly-api` - API clients
+- `launchdarkly-docker-image` - Docker images
+- `launchdarkly-ai` - AI-related projects
+
+**Technology topics:**
+
+Languages (use variants):
+- `go`, `golang` (both)
+- `javascript`, `typescript` (both if applicable)
+- `node`, `nodejs`, `node-js` (all three for Node)
+- `react`, `reactjs`, `react-js` (all three for React)
+- `csharp`, `c-sharp`, `dotnet` (all three for .NET)
+- `python`, `ruby`, `java`, `rust`, `swift`, `php`, `dart`, etc.
+
+Platforms/Frameworks:
+- `angular`, `vue`, `flutter`, `electron`, `gatsby`
+- `android`, `ios`, `macos`, `tvos`, `watchos`
+
+Tools/Integrations:
+- `cli`, `command-line-interface`
+- `github-action`, `github-actions`, `actions` (all three for GitHub Actions)
+- `terraform`, `helm`, `helm-chart`
+- `vscode`, `vscode-extension`
+- `homebrew`, `homebrew-tap`, `brew`
+
+Specialized:
+- `sdk` - For all SDK repos
+- `sdk-examples`, `examples` - For example repos
+- `api-client` - For API clients
+- `tools` - For utility tools
+- `openfeature`, `openapi`
+- `mcp` - Model Context Protocol
+
+**Common topic patterns:**
+
+For SDKs:
+```
+launchdarkly, launchdarkly-labs, launchdarkly-sdk, sdk, feature-flags, feature-toggles, [language], [framework]
+```
+
+For SDK Components:
+```
+launchdarkly, launchdarkly-labs, launchdarkly-sdk-component, feature-flags, feature-toggles, [language], [integration]
+```
+
+For Integrations:
+```
+launchdarkly, launchdarkly-labs, launchdarkly-integration, feature-flags, feature-toggles, [tool/platform]
+```
+
+For GitHub Actions:
+```
+launchdarkly, launchdarkly-labs, launchdarkly-integration, github-action, github-actions, actions, feature-flags, feature-toggles
+```
+
+For Examples:
+```
+launchdarkly, launchdarkly-labs, sdk-examples, examples, feature-flags, feature-toggles, [language]
+```
+
+### Propose Repository Updates
+
+Based on the repository content and naming conventions above, propose:
+1. Repository name (if it doesn't follow conventions)
+2. Description (clear one-line summary)
+3. Topics (following the patterns above)
+4. Homepage URL (if applicable)
+5. Enable issues
+
+**Present the proposed changes to the user and ask for confirmation before making any changes.**
+
+### Apply Changes (Only After User Approval)
+
+Combine all repository updates into a single command:
+```bash
+gh repo edit \
+  --description "Your description here" \
+  --add-topic launchdarkly \
+  --add-topic launchdarkly-labs \
+  --add-topic launchdarkly-sdk \
+  --add-topic feature-flags \
+  --add-topic feature-toggles \
+  --add-topic [language] \
+  --add-topic [framework] \
+  --enable-issues
+```
+
+If homepage URL is needed, add: `--homepage <url>`
+
+**Note:** Repository name changes require manual intervention via GitHub UI or `gh repo rename`.
+
+## Final Verification
+Run comprehensive check:
+```bash
+echo "=== Repository Status ===" && \
+gh repo view --json description,topics,hasIssuesEnabled,licenseInfo && \
+echo -e "\n=== License Files ===" && \
+ls -la LICENSE* 2>/dev/null || echo "No LICENSE file found" && \
+echo -e "\n=== Documentation ===" && \
+ls -la README* CHANGELOG* 2>/dev/null && \
+echo -e "\n=== Git Status ===" && \
+git status --short
+```
+
+## Final Checklist
+- [ ] Apache 2.0 LICENSE file with correct copyright
+- [ ] Package metadata updated with Apache-2.0 license
+- [ ] CHANGELOG.md with version history
+- [ ] README.md with all required sections including Labs disclaimer
+- [ ] Repository description and topics set
+- [ ] Issues enabled
+- [ ] All files committed
+
+**⚠️  LICENSING BLOCKERS TO REPORT:**
+If any of the following are found, DO NOT proceed with licensing. Report to user:
+- Existing non-Apache 2.0 licenses in LICENSE file or package metadata
+- Conflicting license information across files
+
+The user must resolve these issues before applying Apache 2.0 license.

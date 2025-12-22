@@ -12,7 +12,12 @@ services:
       - PORT=3000
       - LOG_LEVEL=info
       - LD_SCIM_BASE_URL=https://app.launchdarkly.com/trust/scim/v2
-      - LD_ACCESS_TOKEN=${LD_ACCESS_TOKEN}
+      - LD_TOKEN_URL=https://app.launchdarkly.com/trust/oauth/token
+      # OAuth2 client credentials (recommended)
+      - LD_CLIENT_ID=${LD_CLIENT_ID}
+      - LD_CLIENT_SECRET=${LD_CLIENT_SECRET}
+      # Alternative: static access token (uncomment if using)
+      # - LD_ACCESS_TOKEN=${LD_ACCESS_TOKEN}
       - GATEWAY_BEARER_TOKEN=${GATEWAY_BEARER_TOKEN}
       - DATABASE_PATH=/app/data/scim-gateway.db
       - CONFIG_DIR=/app/config

@@ -5,12 +5,14 @@
  * Transforms standard SCIM User resources to LaunchDarkly's extended schema.
  */
 
+import 'dotenv/config';
 import express from 'express';
 import { loadConfig, AppConfig } from './config/index.js';
 import { initDatabase, closeDatabase } from './db/index.js';
 import { logger, requestLogger } from './middleware/logging.js';
 import { bearerTokenAuth } from './middleware/auth.js';
-import { LaunchDarklyScimClient } from './scim/client/launchdarkly.js';
+import { TokenManager } from './auth/token-manager.js';
+import { LaunchDarklyScimClient, createStaticTokenProvider, TokenProvider } from './scim/client/launchdarkly.js';
 import { createScimRouter } from './scim/server/routes.js';
 
 let config: AppConfig;
@@ -43,10 +45,27 @@ app.get('/ready', (_req, res) => {
   res.json({ status: 'ready', timestamp: new Date().toISOString() });
 });
 
+// Create token provider (OAuth2 client credentials or static token)
+let tokenProvider: TokenProvider;
+
+if (config.ldOAuth) {
+  logger.info('Using OAuth2 client credentials for LaunchDarkly authentication');
+  tokenProvider = new TokenManager({
+    tokenUrl: config.ldOAuth.tokenUrl,
+    clientId: config.ldOAuth.clientId,
+    clientSecret: config.ldOAuth.clientSecret,
+  });
+} else if (config.ldAccessToken) {
+  logger.info('Using static access token for LaunchDarkly authentication');
+  tokenProvider = createStaticTokenProvider(config.ldAccessToken);
+} else {
+  throw new Error('No LaunchDarkly authentication configured');
+}
+
 // Create LaunchDarkly SCIM client
 const ldClient = new LaunchDarklyScimClient({
   baseUrl: config.ldScimBaseUrl,
-  accessToken: config.ldAccessToken,
+  tokenProvider,
 });
 
 // SCIM routes (authenticated)
@@ -77,6 +96,7 @@ const server = app.listen(config.port, () => {
   logger.info({
     port: config.port,
     ldScimBaseUrl: config.ldScimBaseUrl,
+    authMethod: config.ldOAuth ? 'oauth2' : 'static_token',
     mappingsCount: config.mappings.roleMappings.length,
     defaultRole: config.mappings.defaultRole,
   }, 'SCIM Gateway started');

@@ -10,7 +10,7 @@ A SCIM 2.0 middleware service that bridges identity providers with LaunchDarkly.
 ## Overview
 
 ```
-┌─────────────┐     SCIM 2.0      ┌──────────────────┐     SCIM 2.0 + Extension     ┌──────────────────┐
+┌─────────────┐     SCIM 2.0      ┌──────────────────┐     SCIM 2.0 + Extension      ┌──────────────────┐
 │   Alice     │ ─────────────────▶│   SCIM Gateway   │ ─────────────────────────────▶│   LaunchDarkly   │
 │   (IdP)     │◀───────────────── │   (This Service) │◀───────────────────────────── │   SCIM API       │
 └─────────────┘   SCIM Response   └──────────────────┘       SCIM Response           └──────────────────┘
@@ -27,7 +27,9 @@ A SCIM 2.0 middleware service that bridges identity providers with LaunchDarkly.
 
 - Node.js 20 or later
 - LaunchDarkly Enterprise plan with SCIM enabled
-- OAuth2 client credentials from LaunchDarkly (contact [LaunchDarkly Support](https://support.launchdarkly.com/hc/en-us/requests/new))
+- OAuth2 client credentials from LaunchDarkly:
+  - Use the [ld-oauth-framework](https://github.com/launchdarkly-labs/ld-oauth-framework) to create an OAuth client, or
+  - Contact [LaunchDarkly Support](https://support.launchdarkly.com/hc/en-us/requests/new) to obtain credentials with SCIM scopes
 
 ## Quick Start
 
@@ -46,10 +48,11 @@ cp env.example .env
 Edit `.env` with your configuration:
 
 ```bash
-# Required: LaunchDarkly OAuth2 access token
-LD_ACCESS_TOKEN=your-ld-oauth2-access-token
+# LaunchDarkly OAuth2 credentials (contact LD Support to obtain)
+LD_CLIENT_ID=your-ld-client-id
+LD_CLIENT_SECRET=your-ld-client-secret
 
-# Required: Bearer token for Alice to authenticate to this gateway
+# Bearer token for Alice to authenticate to this gateway
 GATEWAY_BEARER_TOKEN=your-secure-gateway-token
 ```
 
@@ -125,11 +128,16 @@ All SCIM endpoints require Bearer token authentication.
 |----------|----------|---------|-------------|
 | `PORT` | No | `3000` | Server port |
 | `LOG_LEVEL` | No | `info` | Log level (debug, info, warn, error) |
+| `LD_CLIENT_ID` | **Yes*** | - | LaunchDarkly OAuth2 client ID |
+| `LD_CLIENT_SECRET` | **Yes*** | - | LaunchDarkly OAuth2 client secret |
+| `LD_ACCESS_TOKEN` | **Yes*** | - | Pre-obtained access token (alternative to client credentials) |
 | `LD_SCIM_BASE_URL` | No | `https://app.launchdarkly.com/trust/scim/v2` | LaunchDarkly SCIM API base URL |
-| `LD_ACCESS_TOKEN` | **Yes** | - | LaunchDarkly OAuth2 access token |
+| `LD_TOKEN_URL` | No | `https://app.launchdarkly.com/trust/oauth/token` | LaunchDarkly OAuth2 token endpoint |
 | `GATEWAY_BEARER_TOKEN` | **Yes** | - | Bearer token for Alice authentication |
 | `DATABASE_PATH` | No | `./data/scim-gateway.db` | SQLite database path |
 | `CONFIG_DIR` | No | `./config` | Configuration directory path |
+
+\* **Authentication**: You must provide either `LD_CLIENT_ID` + `LD_CLIENT_SECRET` (recommended) OR `LD_ACCESS_TOKEN`. Client credentials are recommended as the gateway will automatically refresh tokens.
 
 ### Role Mappings
 
@@ -206,7 +214,8 @@ npm test
 
 ```bash
 # Set environment variables
-export LD_ACCESS_TOKEN=your-token
+export LD_CLIENT_ID=your-client-id
+export LD_CLIENT_SECRET=your-client-secret
 export GATEWAY_BEARER_TOKEN=your-gateway-token
 
 # Build and start
@@ -226,7 +235,8 @@ docker build -t scim-gateway .
 
 docker run -d \
   -p 3000:3000 \
-  -e LD_ACCESS_TOKEN=your-token \
+  -e LD_CLIENT_ID=your-client-id \
+  -e LD_CLIENT_SECRET=your-client-secret \
   -e GATEWAY_BEARER_TOKEN=your-gateway-token \
   -v scim-data:/app/data \
   scim-gateway

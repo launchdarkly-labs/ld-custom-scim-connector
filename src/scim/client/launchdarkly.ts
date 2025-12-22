@@ -2,10 +2,11 @@
  * LaunchDarkly SCIM API Client
  * 
  * Handles all outbound SCIM requests to LaunchDarkly's SCIM API.
- * Uses OAuth2 Bearer token authentication.
+ * Supports OAuth2 Bearer token authentication with automatic token refresh.
  */
 
 import { logger } from '../../middleware/logging.js';
+import { TokenManager } from '../../auth/token-manager.js';
 import {
   LdScimUserCreatePayload,
   LdScimUserResponse,
@@ -14,9 +15,23 @@ import {
 } from '../schemas/launchdarkly.js';
 import { ScimPatchOperation } from '../schemas/core.js';
 
+/**
+ * Token provider interface - either a TokenManager or a static token
+ */
+export type TokenProvider = TokenManager | { getAccessToken: () => Promise<string> };
+
 export interface LdScimClientConfig {
   baseUrl: string;
-  accessToken: string;
+  tokenProvider: TokenProvider;
+}
+
+/**
+ * Create a static token provider from a string token
+ */
+export function createStaticTokenProvider(token: string): TokenProvider {
+  return {
+    getAccessToken: async () => token,
+  };
 }
 
 export interface LdScimListResponse {
@@ -32,11 +47,11 @@ export interface LdScimListResponse {
  */
 export class LaunchDarklyScimClient {
   private baseUrl: string;
-  private accessToken: string;
+  private tokenProvider: TokenProvider;
 
   constructor(config: LdScimClientConfig) {
     this.baseUrl = config.baseUrl.replace(/\/$/, ''); // Remove trailing slash
-    this.accessToken = config.accessToken;
+    this.tokenProvider = config.tokenProvider;
   }
 
   /**
@@ -45,16 +60,18 @@ export class LaunchDarklyScimClient {
   private async request<T>(
     method: string,
     path: string,
-    body?: unknown
+    body?: unknown,
+    retryOnAuthError = true
   ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
+    const accessToken = await this.tokenProvider.getAccessToken();
 
     logger.debug({ method, url }, 'Making request to LaunchDarkly SCIM API');
 
     const response = await fetch(url, {
       method,
       headers: {
-        Authorization: `Bearer ${this.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/scim+json',
         Accept: 'application/scim+json',
       },
@@ -64,6 +81,15 @@ export class LaunchDarklyScimClient {
     // Handle no-content responses (e.g., DELETE)
     if (response.status === 204) {
       return undefined as T;
+    }
+
+    // Handle 401 - try to refresh token and retry once
+    if (response.status === 401 && retryOnAuthError) {
+      logger.warn('Received 401, attempting token refresh');
+      if (this.tokenProvider instanceof TokenManager) {
+        await this.tokenProvider.forceRefresh();
+        return this.request<T>(method, path, body, false);
+      }
     }
 
     const responseBody = await response.text();
@@ -200,4 +226,3 @@ export class LdScimError extends Error {
     this.name = 'LdScimError';
   }
 }
-
