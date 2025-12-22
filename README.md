@@ -26,10 +26,14 @@ A SCIM 2.0 middleware service that bridges identity providers with LaunchDarkly.
 ## Prerequisites
 
 - Node.js 20 or later
-- LaunchDarkly Enterprise plan with SCIM enabled
+- LaunchDarkly Enterprise plan with:
+  - **SSO (SAML) configured and enabled** - [Configure SAML SSO](https://launchdarkly.com/docs/home/account/saml)
+  - **SCIM provisioning enabled** - [Enable SCIM](https://launchdarkly.com/docs/home/account/scim)
 - OAuth2 client credentials from LaunchDarkly:
   - Use the [ld-oauth-framework](https://github.com/launchdarkly-labs/ld-oauth-framework) to create an OAuth client, or
-  - Contact [LaunchDarkly Support](https://support.launchdarkly.com/hc/en-us/requests/new) to obtain credentials with SCIM scopes
+  - Contact [LaunchDarkly Support](https://support.launchdarkly.com/hc/en-us/requests/new) to obtain credentials
+
+> **Note**: SSO must be configured before SCIM can be enabled. The gateway uses OAuth2 with `scope=scim` to authenticate to LaunchDarkly's SCIM API.
 
 ## Quick Start
 
@@ -133,6 +137,7 @@ All SCIM endpoints require Bearer token authentication.
 | `LD_ACCESS_TOKEN` | **Yes*** | - | Pre-obtained access token (alternative to client credentials) |
 | `LD_SCIM_BASE_URL` | No | `https://app.launchdarkly.com/trust/scim/v2` | LaunchDarkly SCIM API base URL |
 | `LD_TOKEN_URL` | No | `https://app.launchdarkly.com/trust/oauth/token` | LaunchDarkly OAuth2 token endpoint |
+| `LD_OAUTH_SCOPE` | No | `scim` | OAuth2 scope for SCIM operations |
 | `GATEWAY_BEARER_TOKEN` | **Yes** | - | Bearer token for Alice authentication |
 | `DATABASE_PATH` | No | `./data/scim-gateway.db` | SQLite database path |
 | `CONFIG_DIR` | No | `./config` | Configuration directory path |

@@ -32,6 +32,8 @@ export interface LdOAuthConfig {
   clientId: string;
   /** OAuth2 client secret */
   clientSecret: string;
+  /** OAuth2 scope (defaults to 'scim') */
+  scope: string;
 }
 
 /**
@@ -135,6 +137,7 @@ export function loadConfig(): AppConfig {
       tokenUrl: ldTokenUrl,
       clientId: ldClientId,
       clientSecret: ldClientSecret,
+      scope: process.env.LD_OAUTH_SCOPE || 'scim',
     };
   } else if (ldClientId && !ldClientSecret) {
     throw new Error('LD_CLIENT_ID is set but LD_CLIENT_SECRET is missing');

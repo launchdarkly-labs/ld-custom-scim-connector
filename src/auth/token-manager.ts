@@ -14,6 +14,8 @@ export interface TokenManagerConfig {
   clientId: string;
   /** OAuth2 client secret */
   clientSecret: string;
+  /** OAuth2 scope (defaults to 'scim' for LaunchDarkly SCIM API) */
+  scope?: string;
   /** Buffer time before expiry to refresh token (in seconds) */
   refreshBufferSeconds?: number;
 }
@@ -81,21 +83,20 @@ export class TokenManager {
    * Refresh the access token using client credentials grant
    */
   private async refreshToken(): Promise<string> {
-    logger.debug('Refreshing OAuth2 access token');
-
-    const credentials = Buffer.from(
-      `${this.config.clientId}:${this.config.clientSecret}`
-    ).toString('base64');
+    const scope = this.config.scope ?? 'scim';
+    logger.debug({ scope }, 'Refreshing OAuth2 access token');
 
     try {
       const response = await fetch(this.config.tokenUrl, {
         method: 'POST',
         headers: {
-          'Authorization': `Basic ${credentials}`,
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
+          client_id: this.config.clientId,
+          client_secret: this.config.clientSecret,
           grant_type: 'client_credentials',
+          scope,
         }),
       });
 
@@ -120,9 +121,10 @@ export class TokenManager {
           'Access token obtained'
         );
       } else {
-        // If no expires_in, assume 1 hour
-        this.expiresAt = new Date(Date.now() + 3600 * 1000);
-        logger.debug('Access token obtained (assuming 1 hour expiry)');
+        // LaunchDarkly SCIM tokens are valid for 1 year if no expires_in provided
+        const oneYearInSeconds = 365 * 24 * 60 * 60;
+        this.expiresAt = new Date(Date.now() + oneYearInSeconds * 1000);
+        logger.debug('Access token obtained (assuming 1 year expiry for SCIM)');
       }
 
       return this.accessToken;

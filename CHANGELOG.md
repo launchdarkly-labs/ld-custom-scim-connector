@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Add `scope=scim` to OAuth2 token request (required by LaunchDarkly SCIM API)
+- Pass OAuth2 credentials in request body instead of Basic auth header
+
 ## [1.0.0] - 2025-12-22
 
 ### Added
