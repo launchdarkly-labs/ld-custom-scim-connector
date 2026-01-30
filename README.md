@@ -35,7 +35,7 @@ A SCIM 2.0 middleware service that bridges identity providers with LaunchDarkly.
 
 > **Note**: SSO must be configured before SCIM can be enabled. The gateway uses OAuth2 with `scope=scim` to authenticate to LaunchDarkly's SCIM API.
 
-## ⚠️ EU Instance Configuration
+## EU Instance Configuration
 
 **This connector is configured for LaunchDarkly EU instances by default.** If you're using a LaunchDarkly account hosted in the EU region, the configuration in `env.example` is already set correctly.
 
@@ -62,7 +62,7 @@ LD_TOKEN_URL=https://app.launchdarkly.com/trust/oauth/token
 
 ## Quick Start
 
-> **🇪🇺 EU Customers:** This connector is configured for EU LaunchDarkly instances by default. If you're on an EU instance, you can proceed directly - no API URL changes needed!
+> **EU Customers:** This connector is configured for EU LaunchDarkly instances by default. If you're on an EU instance, you can proceed directly - no API URL changes needed!
 
 ### 1. Install dependencies
 
