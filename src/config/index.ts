@@ -113,10 +113,12 @@ export function loadConfig(): AppConfig {
   const configDir = process.env.CONFIG_DIR || path.join(process.cwd(), 'config');
   const mappingsPath = path.join(configDir, 'mappings.yaml');
 
-  // Default to US endpoint; EU accounts should use: https://app.eu.launchdarkly.com/trust/scim/v2
-  const ldScimBaseUrl = process.env.LD_SCIM_BASE_URL || 'https://app.launchdarkly.com/trust/scim/v2';
-  // Default to US endpoint; EU accounts should use: https://app.eu.launchdarkly.com/trust/oauth/token
-  const ldTokenUrl = process.env.LD_TOKEN_URL || 'https://app.launchdarkly.com/trust/oauth/token';
+  // Default to EU endpoint (for EU LaunchDarkly instances)
+  // US accounts should override: https://app.launchdarkly.com/trust/scim/v2
+  const ldScimBaseUrl = process.env.LD_SCIM_BASE_URL || 'https://app.eu.launchdarkly.com/trust/scim/v2';
+  // Default to EU endpoint (for EU LaunchDarkly instances)
+  // US accounts should override: https://app.launchdarkly.com/trust/oauth/token
+  const ldTokenUrl = process.env.LD_TOKEN_URL || 'https://app.eu.launchdarkly.com/trust/oauth/token';
 
   // Check for OAuth2 client credentials (preferred)
   const ldClientId = process.env.LD_CLIENT_ID;

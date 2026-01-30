@@ -11,8 +11,9 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - LOG_LEVEL=info
-      - LD_SCIM_BASE_URL=https://app.launchdarkly.com/trust/scim/v2
-      - LD_TOKEN_URL=https://app.launchdarkly.com/trust/oauth/token
+      # EU endpoints (default) - for US accounts, override these:
+      - LD_SCIM_BASE_URL=${LD_SCIM_BASE_URL:-https://app.eu.launchdarkly.com/trust/scim/v2}
+      - LD_TOKEN_URL=${LD_TOKEN_URL:-https://app.eu.launchdarkly.com/trust/oauth/token}
       # OAuth2 client credentials (recommended)
       - LD_CLIENT_ID=${LD_CLIENT_ID}
       - LD_CLIENT_SECRET=${LD_CLIENT_SECRET}

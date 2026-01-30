@@ -35,7 +35,34 @@ A SCIM 2.0 middleware service that bridges identity providers with LaunchDarkly.
 
 > **Note**: SSO must be configured before SCIM can be enabled. The gateway uses OAuth2 with `scope=scim` to authenticate to LaunchDarkly's SCIM API.
 
+## ⚠️ EU Instance Configuration
+
+**This connector is configured for LaunchDarkly EU instances by default.** If you're using a LaunchDarkly account hosted in the EU region, the configuration in `env.example` is already set correctly.
+
+### For EU Customers
+
+The default configuration uses EU endpoints:
+- SCIM API: `https://app.eu.launchdarkly.com/trust/scim/v2`
+- OAuth Token: `https://app.eu.launchdarkly.com/trust/oauth/token`
+
+**No changes needed** - just copy `env.example` to `.env` and fill in your credentials.
+
+### For US Customers
+
+If you're using a US LaunchDarkly instance, update your `.env` file:
+
+```bash
+LD_SCIM_BASE_URL=https://app.launchdarkly.com/trust/scim/v2
+LD_TOKEN_URL=https://app.launchdarkly.com/trust/oauth/token
+```
+
+**How to determine your instance region:**
+- Check your LaunchDarkly dashboard URL: if it contains `.eu.` (e.g., `app.eu.launchdarkly.com`), you're on the EU instance
+- If your dashboard URL is `app.launchdarkly.com` (without `.eu.`), you're on the US instance
+
 ## Quick Start
+
+> **🇪🇺 EU Customers:** This connector is configured for EU LaunchDarkly instances by default. If you're on an EU instance, you can proceed directly - no API URL changes needed!
 
 ### 1. Install dependencies
 
@@ -49,15 +76,26 @@ npm install
 cp env.example .env
 ```
 
-Edit `.env` with your configuration:
+Edit `.env` with your configuration. **The default configuration is for EU LaunchDarkly instances.**
 
+**For EU customers (default):**
 ```bash
 # LaunchDarkly OAuth2 credentials (contact LD Support to obtain)
 LD_CLIENT_ID=your-ld-client-id
 LD_CLIENT_SECRET=your-ld-client-secret
 
+# API URLs are already configured for EU:
+# LD_SCIM_BASE_URL=https://app.eu.launchdarkly.com/trust/scim/v2
+# LD_TOKEN_URL=https://app.eu.launchdarkly.com/trust/oauth/token
+
 # Bearer token for Alice to authenticate to this gateway
 GATEWAY_BEARER_TOKEN=your-secure-gateway-token
+```
+
+**For US customers only:** Update the API URLs in `.env`:
+```bash
+LD_SCIM_BASE_URL=https://app.launchdarkly.com/trust/scim/v2
+LD_TOKEN_URL=https://app.launchdarkly.com/trust/oauth/token
 ```
 
 ### 3. Configure role mappings
@@ -135,8 +173,8 @@ All SCIM endpoints require Bearer token authentication.
 | `LD_CLIENT_ID` | **Yes*** | - | LaunchDarkly OAuth2 client ID |
 | `LD_CLIENT_SECRET` | **Yes*** | - | LaunchDarkly OAuth2 client secret |
 | `LD_ACCESS_TOKEN` | **Yes*** | - | Pre-obtained access token (alternative to client credentials) |
-| `LD_SCIM_BASE_URL` | No | `https://app.launchdarkly.com/trust/scim/v2` | LaunchDarkly SCIM API base URL<br/>For EU accounts: `https://app.eu.launchdarkly.com/trust/scim/v2` |
-| `LD_TOKEN_URL` | No | `https://app.launchdarkly.com/trust/oauth/token` | LaunchDarkly OAuth2 token endpoint<br/>For EU accounts: `https://app.eu.launchdarkly.com/trust/oauth/token` |
+| `LD_SCIM_BASE_URL` | No | `https://app.eu.launchdarkly.com/trust/scim/v2` | LaunchDarkly SCIM API base URL<br/>**EU (default):** `https://app.eu.launchdarkly.com/trust/scim/v2`<br/>**US:** `https://app.launchdarkly.com/trust/scim/v2` |
+| `LD_TOKEN_URL` | No | `https://app.eu.launchdarkly.com/trust/oauth/token` | LaunchDarkly OAuth2 token endpoint<br/>**EU (default):** `https://app.eu.launchdarkly.com/trust/oauth/token`<br/>**US:** `https://app.launchdarkly.com/trust/oauth/token` |
 | `LD_OAUTH_SCOPE` | No | `scim` | OAuth2 scope for SCIM operations |
 | `GATEWAY_BEARER_TOKEN` | **Yes** | - | Bearer token for Alice authentication |
 | `DATABASE_PATH` | No | `./data/scim-gateway.db` | SQLite database path |
@@ -223,6 +261,11 @@ export LD_CLIENT_ID=your-client-id
 export LD_CLIENT_SECRET=your-client-secret
 export GATEWAY_BEARER_TOKEN=your-gateway-token
 
+# EU customers (default): No additional configuration needed
+# US customers: Override the API URLs
+# export LD_SCIM_BASE_URL=https://app.launchdarkly.com/trust/scim/v2
+# export LD_TOKEN_URL=https://app.launchdarkly.com/trust/oauth/token
+
 # Build and start
 docker compose up -d
 
@@ -274,6 +317,18 @@ docker run -d \
 - Verify your `LD_ACCESS_TOKEN` is valid and has SCIM permissions
 - Check that SCIM is enabled in your LaunchDarkly account
 - Ensure the custom roles referenced in mappings exist in LaunchDarkly
+
+**"found unexpected oauth2 userID string: ''" error**
+- This error typically indicates an OAuth2 client configuration issue
+- Verify your OAuth2 client credentials are correctly configured for SCIM
+- Ensure you're using the correct API endpoints for your region (EU vs US)
+- Contact LaunchDarkly Support if the issue persists
+
+**Connection errors or 404s when calling LaunchDarkly API**
+- **EU customers:** Verify you're using `https://app.eu.launchdarkly.com` endpoints
+- **US customers:** Verify you've updated `.env` to use `https://app.launchdarkly.com` endpoints (without `.eu.`)
+- Check your LaunchDarkly dashboard URL to confirm your instance region
+- Ensure both `LD_SCIM_BASE_URL` and `LD_TOKEN_URL` use the same region
 
 ## Contributing
 
