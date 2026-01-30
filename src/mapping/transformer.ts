@@ -42,13 +42,30 @@ export function transformAliceUserToLdUser(
     );
   }
 
+  // Extract email from Alice user - emails is REQUIRED by LaunchDarkly SCIM API
+  // Use emails array if provided, otherwise derive from userName
+  let emails: Array<{ value: string; primary?: boolean; type?: string }>;
+  if (aliceUser.emails && aliceUser.emails.length > 0) {
+    emails = aliceUser.emails.map((email) => ({
+      value: email.value,
+      primary: email.primary,
+      type: email.type || 'work',
+    }));
+  } else if (aliceUser.userName) {
+    // Fallback: use userName as email if emails not provided
+    emails = [{ value: aliceUser.userName, primary: true, type: 'work' }];
+  } else {
+    throw new Error('User must have either emails array or userName (which will be used as email)');
+  }
+
   // Build the LD user payload
   const ldUser: LdScimUserCreatePayload = {
     schemas: [
       SCIM_CORE_USER_SCHEMA,
       LD_SCIM_EXTENSION_SCHEMA,
     ],
-    userName: aliceUser.userName,
+    emails, // REQUIRED by LaunchDarkly SCIM API
+    userName: aliceUser.userName, // Optional, defaults to email if not provided
     active: aliceUser.active ?? true,
     [LD_SCIM_EXTENSION_SCHEMA]: ldExtension,
   };

@@ -34,6 +34,8 @@ export interface LdOAuthConfig {
   clientSecret: string;
   /** OAuth2 scope (defaults to 'scim') */
   scope: string;
+  /** Optional userID to include in token request (if required by LaunchDarkly) */
+  userId?: string;
 }
 
 /**
@@ -111,7 +113,9 @@ export function loadConfig(): AppConfig {
   const configDir = process.env.CONFIG_DIR || path.join(process.cwd(), 'config');
   const mappingsPath = path.join(configDir, 'mappings.yaml');
 
+  // Default to US endpoint; EU accounts should use: https://app.eu.launchdarkly.com/trust/scim/v2
   const ldScimBaseUrl = process.env.LD_SCIM_BASE_URL || 'https://app.launchdarkly.com/trust/scim/v2';
+  // Default to US endpoint; EU accounts should use: https://app.eu.launchdarkly.com/trust/oauth/token
   const ldTokenUrl = process.env.LD_TOKEN_URL || 'https://app.launchdarkly.com/trust/oauth/token';
 
   // Check for OAuth2 client credentials (preferred)
@@ -138,6 +142,7 @@ export function loadConfig(): AppConfig {
       clientId: ldClientId,
       clientSecret: ldClientSecret,
       scope: process.env.LD_OAUTH_SCOPE || 'scim',
+      userId: process.env.LD_OAUTH_USER_ID, // Optional userID if required
     };
   } else if (ldClientId && !ldClientSecret) {
     throw new Error('LD_CLIENT_ID is set but LD_CLIENT_SECRET is missing');

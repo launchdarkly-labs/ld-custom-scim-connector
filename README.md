@@ -135,8 +135,8 @@ All SCIM endpoints require Bearer token authentication.
 | `LD_CLIENT_ID` | **Yes*** | - | LaunchDarkly OAuth2 client ID |
 | `LD_CLIENT_SECRET` | **Yes*** | - | LaunchDarkly OAuth2 client secret |
 | `LD_ACCESS_TOKEN` | **Yes*** | - | Pre-obtained access token (alternative to client credentials) |
-| `LD_SCIM_BASE_URL` | No | `https://app.launchdarkly.com/trust/scim/v2` | LaunchDarkly SCIM API base URL |
-| `LD_TOKEN_URL` | No | `https://app.launchdarkly.com/trust/oauth/token` | LaunchDarkly OAuth2 token endpoint |
+| `LD_SCIM_BASE_URL` | No | `https://app.launchdarkly.com/trust/scim/v2` | LaunchDarkly SCIM API base URL<br/>For EU accounts: `https://app.eu.launchdarkly.com/trust/scim/v2` |
+| `LD_TOKEN_URL` | No | `https://app.launchdarkly.com/trust/oauth/token` | LaunchDarkly OAuth2 token endpoint<br/>For EU accounts: `https://app.eu.launchdarkly.com/trust/oauth/token` |
 | `LD_OAUTH_SCOPE` | No | `scim` | OAuth2 scope for SCIM operations |
 | `GATEWAY_BEARER_TOKEN` | **Yes** | - | Bearer token for Alice authentication |
 | `DATABASE_PATH` | No | `./data/scim-gateway.db` | SQLite database path |

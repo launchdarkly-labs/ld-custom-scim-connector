@@ -49,12 +49,13 @@ app.get('/ready', (_req, res) => {
 let tokenProvider: TokenProvider;
 
 if (config.ldOAuth) {
-  logger.info({ scope: config.ldOAuth.scope }, 'Using OAuth2 client credentials for LaunchDarkly authentication');
+  logger.info({ scope: config.ldOAuth.scope, userId: config.ldOAuth.userId }, 'Using OAuth2 client credentials for LaunchDarkly authentication');
   tokenProvider = new TokenManager({
     tokenUrl: config.ldOAuth.tokenUrl,
     clientId: config.ldOAuth.clientId,
     clientSecret: config.ldOAuth.clientSecret,
     scope: config.ldOAuth.scope,
+    userId: config.ldOAuth.userId,
   });
 } else if (config.ldAccessToken) {
   logger.info('Using static access token for LaunchDarkly authentication');

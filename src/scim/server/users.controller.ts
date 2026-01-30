@@ -33,7 +33,14 @@ export function createUsersController(config: AppConfig, ldClient: LaunchDarklyS
       try {
         const aliceUser = req.body as ScimCoreUser;
 
-        logger.info({ userName: aliceUser.userName, externalId: aliceUser.externalId }, 'Creating user');
+        // Validate required fields - emails is required by LaunchDarkly SCIM API
+        const emailValue = aliceUser.emails?.[0]?.value || aliceUser.userName;
+        if (!emailValue) {
+          res.status(400).json(createScimError(400, 'Missing emails or userName', 'invalidValue'));
+          return;
+        }
+
+        logger.info({ userName: aliceUser.userName, email: emailValue, externalId: aliceUser.externalId }, 'Creating user');
 
         // Check if user already exists (by externalId)
         if (aliceUser.externalId) {
@@ -45,8 +52,9 @@ export function createUsersController(config: AppConfig, ldClient: LaunchDarklyS
           }
         }
 
-        // Check if user already exists in LD by userName
-        const existingLdUser = await ldClient.findUserByUserName(aliceUser.userName);
+        // Check if user already exists in LD by userName (or email if userName not provided)
+        const searchUserName = aliceUser.userName || emailValue;
+        const existingLdUser = await ldClient.findUserByUserName(searchUserName);
         if (existingLdUser) {
           // User exists in LD but not in our mapping - create mapping and return
           const aliceId = uuidv4();
@@ -63,7 +71,7 @@ export function createUsersController(config: AppConfig, ldClient: LaunchDarklyS
             await ldClient.updateUserCustomRoles(existingLdUser.id, customRoles);
           }
 
-          logger.info({ userName: aliceUser.userName, ldId: existingLdUser.id }, 'Linked existing LD user');
+          logger.info({ userName: searchUserName, ldId: existingLdUser.id }, 'Linked existing LD user');
 
           res.status(201)
             .header('Location', `${req.baseUrl}/Users/${aliceId}`)
@@ -86,7 +94,7 @@ export function createUsersController(config: AppConfig, ldClient: LaunchDarklyS
           ldUser.userName
         );
 
-        logger.info({ userName: aliceUser.userName, aliceId, ldId: ldUser.id }, 'User created successfully');
+        logger.info({ userName: ldUser.userName, aliceId, ldId: ldUser.id }, 'User created successfully');
 
         // Return SCIM response
         const response = transformLdResponseToAliceResponse(ldUser, aliceId, req.baseUrl);

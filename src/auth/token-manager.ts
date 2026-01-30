@@ -16,6 +16,8 @@ export interface TokenManagerConfig {
   clientSecret: string;
   /** OAuth2 scope (defaults to 'scim' for LaunchDarkly SCIM API) */
   scope?: string;
+  /** Optional userID to include in token request (if required by LaunchDarkly) */
+  userId?: string;
   /** Buffer time before expiry to refresh token (in seconds) */
   refreshBufferSeconds?: number;
 }
@@ -84,20 +86,27 @@ export class TokenManager {
    */
   private async refreshToken(): Promise<string> {
     const scope = this.config.scope ?? 'scim';
-    logger.debug({ scope }, 'Refreshing OAuth2 access token');
+    logger.debug({ scope, userId: this.config.userId }, 'Refreshing OAuth2 access token');
 
     try {
+      const params = new URLSearchParams({
+        client_id: this.config.clientId,
+        client_secret: this.config.clientSecret,
+        grant_type: 'client_credentials',
+        scope,
+      });
+
+      // Include userID if provided (some LaunchDarkly configurations may require this)
+      if (this.config.userId) {
+        params.set('user_id', this.config.userId);
+      }
+
       const response = await fetch(this.config.tokenUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: new URLSearchParams({
-          client_id: this.config.clientId,
-          client_secret: this.config.clientSecret,
-          grant_type: 'client_credentials',
-          scope,
-        }),
+        body: params,
       });
 
       if (!response.ok) {
